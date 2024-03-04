@@ -1,11 +1,14 @@
 package com.example.demoproject;
 
+import android.widget.GridView;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.TabHost;
 
-public class MainActivity extends AppCompatActivity {
+import java.util.ArrayList;
 
+public class MainActivity extends AppCompatActivity {
+    GridView gv;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -15,15 +18,29 @@ public class MainActivity extends AppCompatActivity {
         TabHost.TabSpec spec;
         spec = tabHost.newTabSpec("tag1");
         spec.setContent(R.id.tab1);
-        spec.setIndicator("tab 1");
+        spec.setIndicator("Overview");
         tabHost.addTab(spec);
 
         spec = tabHost.newTabSpec("tag2");
         spec.setContent(R.id.tab2);
-        spec.setIndicator("tab 2");
+        spec.setIndicator("Reminder list");
         tabHost.addTab(spec);
 
+        spec = tabHost.newTabSpec("tag3");
+        spec.setContent(R.id.tab3);
+        spec.setIndicator("New reminder");
+        tabHost.addTab(spec);
         tabHost.setCurrentTab(0);
 
+        gv = findViewById(R.id.gridView);
+        ArrayList<ItemOverview> itemOverviewArrayList = new ArrayList<>();
+
+        itemOverviewArrayList.add(new ItemOverview("All", R.mipmap.ic_launcher_round, 10));
+        itemOverviewArrayList.add(new ItemOverview("Today", R.mipmap.ic_launcher_round, 3));
+        itemOverviewArrayList.add(new ItemOverview("Completed", R.mipmap.ic_launcher_round, 15));
+        itemOverviewArrayList.add(new ItemOverview("Flagged", R.mipmap.ic_launcher_round, 2));
+
+        OverviewAdapter overviewAdapter = new OverviewAdapter(this, itemOverviewArrayList);
+        gv.setAdapter(overviewAdapter);
     }
 }
