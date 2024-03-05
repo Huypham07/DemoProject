@@ -35,10 +35,12 @@ public class MainActivity extends AppCompatActivity {
         gv = findViewById(R.id.gridView);
         ArrayList<ItemOverview> itemOverviewArrayList = new ArrayList<>();
 
-        itemOverviewArrayList.add(new ItemOverview("All", R.mipmap.ic_launcher_round, 10));
-        itemOverviewArrayList.add(new ItemOverview("Today", R.mipmap.ic_launcher_round, 3));
-        itemOverviewArrayList.add(new ItemOverview("Completed", R.mipmap.ic_launcher_round, 15));
-        itemOverviewArrayList.add(new ItemOverview("Flagged", R.mipmap.ic_launcher_round, 2));
+
+        itemOverviewArrayList.add(new ItemOverview("Today", R.drawable.calendar_today, 3));
+        itemOverviewArrayList.add(new ItemOverview("Scheduled", R.drawable.calendar, 10));
+        itemOverviewArrayList.add(new ItemOverview("All", R.drawable.tray, 10));
+        itemOverviewArrayList.add(new ItemOverview("Completed", R.drawable.check, 15));
+        itemOverviewArrayList.add(new ItemOverview("Flagged", R.drawable.flagged, 2));
 
         OverviewAdapter overviewAdapter = new OverviewAdapter(this, itemOverviewArrayList);
         gv.setAdapter(overviewAdapter);
