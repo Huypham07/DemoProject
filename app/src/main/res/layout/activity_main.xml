@@ -6,33 +6,16 @@
               tools:context=".MainActivity"
               android:orientation="vertical"
               android:background="#FEDBD0">
-
-    <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                  android:id="@+id/title"
-                  android:text="This is a demo app for slide"
-                  android:textSize="20dp"
-                  android:textAlignment="gravity"
-                  android:textStyle="bold"
-                  android:fontFamily="sans-serif-condensed-medium"
-                  android:layout_margin="16dp"
-                  app:layout_constraintTop_toTopOf="parent"
-                  android:layout_marginTop="16dp" app:layout_constraintStart_toStartOf="parent"
-                  android:layout_marginStart="16dp" app:layout_constraintBottom_toBottomOf="parent"
-                  android:layout_marginBottom="16dp" android:textColor="#442C2E"/>
-        <Button
-                android:text="Add"
-                android:layout_width="75dp"
-                android:layout_height="50dp" android:id="@+id/button2"
-                app:layout_constraintEnd_toEndOf="parent" android:layout_marginEnd="8dp"
-                app:layout_constraintTop_toTopOf="parent" android:layout_marginTop="5dp"
-                app:layout_constraintBottom_toBottomOf="parent" android:layout_marginBottom="4dp"
-                android:textColor="#442C2E" android:backgroundTint="#FFFBFA"
-        />
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    
+    <androidx.appcompat.widget.Toolbar
+            android:layout_width="match_parent" android:layout_height="60dp"
+            android:id="@+id/toolbar"
+            android:logo="@drawable/logo"
+            android:titleMarginStart="28dp"
+            android:title="Reminder"
+            android:titleTextColor="#442C2E"
+            android:subtitle="This app is demo for slide"
+            android:subtitleTextColor="#453234"/>
 
 
     <TabHost

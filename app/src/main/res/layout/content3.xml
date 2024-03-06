@@ -2,14 +2,71 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
-              android:orientation="vertical">
-
-    <TextView
+              android:orientation="vertical" android:padding="16dp">
+    <LinearLayout
+            android:orientation="horizontal"
             android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+        <ImageButton
+                android:src="@drawable/baseline_more_vert_24"
+                android:layout_width="33dp"
+                android:layout_height="37dp" android:id="@+id/popupMenu" android:layout_weight="1"
+                android:backgroundTint="#000B0909" android:layout_gravity="end"/>
+        <TextView
+                android:text="Add new reminder"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:id="@+id/textView" android:fontFamily="sans-serif-medium"
+                android:textSize="24sp" android:layout_marginBottom="48dp"/>
+    </LinearLayout>
+    <EditText
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginTop="270dp"
-            android:text="This is Tab 3"
-            android:textColor="#000"
-            android:textSize="32sp" />
+            android:inputType="text"
+            android:ems="10"
+            android:id="@+id/editTextText" android:fontFamily="sans-serif-medium" android:hint="Set reminder's name"
+            android:minHeight="48dp" android:layout_marginBottom="16dp"/>
+    <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:layout_margin="16dp">
+        <TextView
+                android:text="Date"
+                android:layout_width="60dp"
+                android:layout_height="match_parent" android:id="@+id/textView2" android:fontFamily="sans-serif-medium"
+                android:textSize="18sp" android:textAlignment="viewStart"
+                android:gravity="center_vertical"/>
+        <ImageButton
+                android:src="@drawable/calendar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:id="@+id/date" android:layout_weight="1"
+                android:backgroundTint="#00FFFFFF" android:contentDescription="@string/app_name"
+                android:layout_marginStart="16dp" android:layout_marginEnd="16dp"/>
+        <TextView
+                android:text="dd/mm/yyyy"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent" android:id="@+id/textView4" android:layout_weight="1"
+                android:gravity="start|center_vertical"/>
+    </LinearLayout>
+    <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:layout_margin="16dp">
+        <TextView
+                android:text="Time"
+                android:layout_width="60dp"
+                android:layout_height="match_parent" android:id="@+id/textView3" android:layout_weight="1"
+                android:fontFamily="sans-serif-medium"
+                android:textSize="18sp" android:gravity="start|center_vertical"/>
+        <ImageButton
+                android:src="@drawable/baseline_access_alarms_24"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:id="@+id/time" android:layout_weight="1"
+                android:backgroundTint="#00FFFFFF" android:contentDescription="@string/app_name"
+                android:layout_marginStart="16dp" android:layout_marginEnd="16dp"/>
+        <TextView
+                android:text="00:00"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent" android:id="@+id/textView5" android:layout_weight="1"
+                android:gravity="start|center_vertical"/>
+    </LinearLayout>
 </LinearLayout>

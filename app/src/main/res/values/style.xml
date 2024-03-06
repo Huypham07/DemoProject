@@ -1,0 +1,12 @@
+<resources>
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+
+        <!-- provided green color to the ActionBar -->
+        <item name="colorPrimary">#FEDBD0</item>
+        <item name="colorPrimaryDark">#FEDBD0</item>
+        <item name="colorAccent">#FEDBD0</item>
+    </style>
+
+</resources>
