@@ -1,12 +1,14 @@
 package com.example.demoproject;
 
+import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.view.*;
 import android.widget.*;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
@@ -16,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity {
+    //----DATE----
     DateFormat fmtDateAndTime = DateFormat.getDateTimeInstance();
     Calendar myCalendar = Calendar.getInstance();
     DatePickerDialog.OnDateSetListener d = new DatePickerDialog.OnDateSetListener() {
@@ -26,7 +29,6 @@ public class MainActivity extends AppCompatActivity {
             myCalendar.set(Calendar.DAY_OF_MONTH, i2);
         }
     };
-
     TimePickerDialog.OnTimeSetListener t = new TimePickerDialog.OnTimeSetListener() {
         @Override
         public void onTimeSet(TimePicker timePicker, int i, int i1) {
@@ -34,50 +36,70 @@ public class MainActivity extends AppCompatActivity {
             myCalendar.set(Calendar.MINUTE, i1);
         }
     };
+
+    //---REQUEST CODE INTENT------
+    private static final int REQUEST_CODE = 1;
+
+    //----RECEIVER-------
+    AirplainModeReceiver airplainModeReceiver = new AirplainModeReceiver();
+    IntentFilter airplainIntentFilter;
+    MailSendingReceiver mailSendingReceiver = new MailSendingReceiver();
+    IntentFilter mailIntentFilter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        ActionBar actionBar = getSupportActionBar();
-        customActionBar(actionBar);
+        // create action bar
+        {
+            Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+            setSupportActionBar(toolbar);
+            ActionBar actionBar = getSupportActionBar();
+            customActionBar(actionBar);
+        }
 
-        TabHost tabHost = (TabHost) (findViewById(R.id.tabHost));
-        tabHost.setup();
-        TabHost.TabSpec spec;
-        spec = tabHost.newTabSpec("tag1");
-        spec.setContent(R.id.tab1);
-        spec.setIndicator("Overview");
-        tabHost.addTab(spec);
+        // create tab host
+        {
+            TabHost tabHost = (TabHost) (findViewById(R.id.tabHost));
+            tabHost.setup();
+            TabHost.TabSpec spec;
+            spec = tabHost.newTabSpec("tag1");
+            spec.setContent(R.id.tab1);
+            spec.setIndicator("Overview");
+            tabHost.addTab(spec);
 
-        spec = tabHost.newTabSpec("tag2");
-        spec.setContent(R.id.tab2);
-        spec.setIndicator("Reminder list");
-        tabHost.addTab(spec);
+            spec = tabHost.newTabSpec("tag2");
+            spec.setContent(R.id.tab2);
+            spec.setIndicator("Reminder list");
+            tabHost.addTab(spec);
 
-        spec = tabHost.newTabSpec("tag3");
-        spec.setContent(R.id.tab3);
-        spec.setIndicator("New reminder");
-        tabHost.addTab(spec);
-        tabHost.setCurrentTab(0);
+            spec = tabHost.newTabSpec("tag3");
+            spec.setContent(R.id.tab3);
+            spec.setIndicator("New reminder");
+            tabHost.addTab(spec);
+            tabHost.setCurrentTab(0);
+        }
 
-        GridView gv;
-        gv = findViewById(R.id.gridView);
-        ArrayList<ItemOverview> itemOverviewArrayList = new ArrayList<>();
+        // create more components
+        {
+            GridView gv;
+            gv = findViewById(R.id.gridView);
+            ArrayList<ItemOverview> itemOverviewArrayList = new ArrayList<>();
 
-        itemOverviewArrayList.add(new ItemOverview("Today", R.drawable.calendar_today, 3));
-        itemOverviewArrayList.add(new ItemOverview("Scheduled", R.drawable.calendar, 10));
-        itemOverviewArrayList.add(new ItemOverview("All", R.drawable.tray, 10));
-        itemOverviewArrayList.add(new ItemOverview("Completed", R.drawable.check, 15));
-        itemOverviewArrayList.add(new ItemOverview("Flagged", R.drawable.flagged, 2));
+            itemOverviewArrayList.add(new ItemOverview("Today", R.drawable.calendar_today, 3));
+            itemOverviewArrayList.add(new ItemOverview("Scheduled", R.drawable.calendar, 10));
+            itemOverviewArrayList.add(new ItemOverview("All", R.drawable.tray, 10));
+            itemOverviewArrayList.add(new ItemOverview("Completed", R.drawable.check, 15));
+            itemOverviewArrayList.add(new ItemOverview("Flagged", R.drawable.flagged, 2));
 
-        OverviewAdapter overviewAdapter = new OverviewAdapter(this, itemOverviewArrayList);
-        gv.setAdapter(overviewAdapter);
+            OverviewAdapter overviewAdapter = new OverviewAdapter(this, itemOverviewArrayList);
+            gv.setAdapter(overviewAdapter);
 
-        registerForContextMenu(gv);
+            registerForContextMenu(gv);
+        }
 
+        // handle event
         TextView datetxt = (TextView) findViewById(R.id.textView4);
         ImageButton dateBtn = (ImageButton) findViewById(R.id.date);
         dateBtn.setOnClickListener(new View.OnClickListener() {
@@ -113,6 +135,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        //----POPUP MENU-------
         ImageButton popupMenuBtn = (ImageButton) findViewById(R.id.popupMenu);
         popupMenuBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -133,6 +156,34 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        airplainIntentFilter = new IntentFilter(Intent.ACTION_AIRPLANE_MODE_CHANGED);
+        registerReceiver(airplainModeReceiver, airplainIntentFilter);
+        mailIntentFilter = new IntentFilter(Intent.ACTION_SEND);
+        mailIntentFilter.addCategory(Intent.CATEGORY_DEFAULT);
+        try {
+            mailIntentFilter.addDataType("message/rfc822");
+        } catch (IntentFilter.MalformedMimeTypeException e) {
+            throw new RuntimeException(e);
+        }
+        registerReceiver(mailSendingReceiver, mailIntentFilter);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        unregisterReceiver(mailSendingReceiver);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(airplainModeReceiver);
+    }
+
+    //--------CONTEXT MENU---------
+    @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
         menu.add(0, v.getId(), 0, "Share");
@@ -150,6 +201,7 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    //------OPTIONS MENU---------
     private void customActionBar(ActionBar actionBar) {
         actionBar.setTitle("  " + actionBar.getTitle());
         actionBar.setSubtitle("   This app is demo for slide");
@@ -167,10 +219,28 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.optItem1) {
             Intent intent = new Intent(this, MainActivity2.class);
-            startActivity(intent);
+            intent.putExtra("request", "Show Settings");
+            startActivityForResult(intent, REQUEST_CODE);
         } else if (item.getItemId() == R.id.optItem2) {
-            Toast.makeText(MainActivity.this, "Pham Huu Huy", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(Intent.ACTION_SEND);
+            intent.setType("message/rfc822");
+            intent.putExtra(Intent.EXTRA_EMAIL, new String[]{"huyhochoi541@gmail.com"});
+            intent.putExtra(Intent.EXTRA_SUBJECT, "Feedback about the app");
+            // chạy trực tiếp intent
+//            startActivity(Intent.createChooser(intent, "Choose a mail app"));
+            //gửi thông báo qua receiver và chạy khi receiver nhận được
+            sendBroadcast(intent);
         }
         return (super.onOptionsItemSelected(item));
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable @org.jetbrains.annotations.Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+            String resultData = data.getStringExtra("result");
+            Toast.makeText(MainActivity.this, resultData, Toast.LENGTH_SHORT).show();
+        }
     }
 }
