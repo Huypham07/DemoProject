@@ -23,7 +23,7 @@
             android:layout_height="wrap_content"
             android:inputType="text"
             android:ems="10"
-            android:id="@+id/editTextText" android:fontFamily="sans-serif-medium" android:hint="Set reminder's name"
+            android:id="@+id/titlereminder" android:fontFamily="sans-serif-medium" android:hint="Set reminder's name"
             android:minHeight="48dp" android:layout_marginBottom="16dp"/>
     <LinearLayout
             android:orientation="horizontal"

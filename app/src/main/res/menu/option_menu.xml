@@ -4,12 +4,16 @@
       tools:context=".MainActivity">
 
     <item
-            android:id="@+id/optItem1"
-            android:title="Setting"
-            app:showAsAction="never" />
-
+        android:id="@+id/optItem1"
+        android:title="Setting"
+        app:showAsAction="never"/>
     <item
-            android:id="@+id/optItem2"
-            android:title="Feedback"
-            app:showAsAction="never" />
+            android:id="@+id/optItem3"
+            android:title="Log out"
+            app:showAsAction="never"/>
+    <item
+        android:id="@+id/optItem2"
+        android:title="Feedback"
+        app:showAsAction="never"/>
+
 </menu>

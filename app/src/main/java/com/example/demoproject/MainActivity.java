@@ -1,10 +1,13 @@
 package com.example.demoproject;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.Cursor;
+import android.database.SQLException;
 import android.view.*;
 import android.widget.*;
 import androidx.annotation.NonNull;
@@ -13,11 +16,31 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import androidx.appcompat.widget.Toolbar;
+import com.example.demoproject.sqlite.DBHelper;
+import com.example.demoproject.sqlite.DBManager;
+
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
+    // Database
+    private DBManager dbManager;
+
+    // user name
+    private String userName;
+    private long userID;
+
+    private int numberReminder = -1;
+    private GridView gv;
+    private ArrayList<ItemOverview> itemOverviewArrayList = new ArrayList<>();
+    private OverviewAdapter overviewAdapter;
+
+    private ListView lv;
+    private ArrayList<ItemReminder> itemReminderArrayList = new ArrayList<>();
+    private ReminderAdapter reminderAdapter;
+
     //----DATE----
     DateFormat fmtDateAndTime = DateFormat.getDateTimeInstance();
     Calendar myCalendar = Calendar.getInstance();
@@ -51,6 +74,11 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        dbManager = new DBManager(this);
+        dbManager.open();
+        userName = getIntent().getStringExtra("userName");
+        userID = getIntent().getLongExtra("userID", -1);
+
         // create action bar
         {
             Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -82,25 +110,26 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // create more components
-        {
-            GridView gv;
-            gv = findViewById(R.id.gridView);
-            ArrayList<ItemOverview> itemOverviewArrayList = new ArrayList<>();
 
-            itemOverviewArrayList.add(new ItemOverview("Today", R.drawable.calendar_today, 3));
-            itemOverviewArrayList.add(new ItemOverview("Scheduled", R.drawable.calendar, 10));
-            itemOverviewArrayList.add(new ItemOverview("All", R.drawable.tray, 10));
-            itemOverviewArrayList.add(new ItemOverview("Completed", R.drawable.check, 15));
-            itemOverviewArrayList.add(new ItemOverview("Flagged", R.drawable.flagged, 2));
+        gv = findViewById(R.id.gridView);
+        itemOverviewArrayList.add(new ItemOverview("Today", R.drawable.calendar_today, 0));
+        itemOverviewArrayList.add(new ItemOverview("Scheduled", R.drawable.calendar, 0));
+        itemOverviewArrayList.add(new ItemOverview("All", R.drawable.tray, 0));
+        itemOverviewArrayList.add(new ItemOverview("Completed", R.drawable.check, 0));
+        itemOverviewArrayList.add(new ItemOverview("Flagged", R.drawable.flagged, 0));
+        overviewAdapter = new OverviewAdapter(this, itemOverviewArrayList);
+        updateNumberReminder();
 
-            OverviewAdapter overviewAdapter = new OverviewAdapter(this, itemOverviewArrayList);
-            gv.setAdapter(overviewAdapter);
+        registerForContextMenu(gv);
 
-            registerForContextMenu(gv);
-        }
+        lv = findViewById(R.id.listview);
+        reminderAdapter = new ReminderAdapter(this, itemReminderArrayList);
+        updateReminderList();
 
         // handle event
         TextView datetxt = (TextView) findViewById(R.id.textView4);
+        Date date = myCalendar.getTime();
+        datetxt.setText(String.format("%02d/%02d/%04d", date.getDay(), date.getMonth(), date.getYear()));
         ImageButton dateBtn = (ImageButton) findViewById(R.id.date);
         dateBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -145,7 +174,16 @@ public class MainActivity extends AppCompatActivity {
                 popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     @Override
                     public boolean onMenuItemClick(MenuItem menuItem) {
-                        Toast.makeText(MainActivity.this, menuItem.getTitle(), Toast.LENGTH_SHORT).show();
+                        if (menuItem.getItemId() == R.id.save) {
+                            EditText title = (EditText) findViewById(R.id.titlereminder);
+                            try {
+                                dbManager.insertReminder(userID, title.getText().toString(), datetxt.getText().toString(), timetxt.getText().toString());
+                                updateNumberReminder();
+                                addNewReminder(new ItemReminder(title.getText().toString(), datetxt.getText().toString(), timetxt.getText().toString()));
+                            } catch (SQLException e) {
+                                e.printStackTrace();
+                            }
+                        }
                         return true;
                     }
                 });
@@ -196,6 +234,9 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(MainActivity.this, "You have shared"
                     , Toast.LENGTH_SHORT).show();
         } else if (item.getTitle() == "Clear all") {
+            dbManager.clearAllReminder(userID);
+            updateReminderList();
+            updateNumberReminder();
             Toast.makeText(MainActivity.this, "You have cleared all", Toast.LENGTH_SHORT).show();
         }
         return true;
@@ -204,7 +245,7 @@ public class MainActivity extends AppCompatActivity {
     //------OPTIONS MENU---------
     private void customActionBar(ActionBar actionBar) {
         actionBar.setTitle("  " + actionBar.getTitle());
-        actionBar.setSubtitle("   This app is demo for slide");
+        actionBar.setSubtitle("   " + userName);
         actionBar.setLogo(R.drawable.logo);
 
     }
@@ -230,6 +271,10 @@ public class MainActivity extends AppCompatActivity {
 //            startActivity(Intent.createChooser(intent, "Choose a mail app"));
             //gửi thông báo qua receiver và chạy khi receiver nhận được
             sendBroadcast(intent);
+        } else if (item.getItemId() == R.id.optItem3) {
+            Intent intent = new Intent(this, LoginActivity.class);
+            intent.putExtra("íslogout", true);
+            startActivity(intent);
         }
         return (super.onOptionsItemSelected(item));
     }
@@ -242,5 +287,42 @@ public class MainActivity extends AppCompatActivity {
             String resultData = data.getStringExtra("result");
             Toast.makeText(MainActivity.this, resultData, Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void updateNumberReminder() {
+        try {
+            numberReminder = dbManager.getNumberOfRemider(userID);
+            for (int i = 0; i < itemOverviewArrayList.size(); i++) {
+                itemOverviewArrayList.get(i).setNotice(numberReminder);
+            }
+            gv.setAdapter(overviewAdapter);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void updateReminderList() {
+        try {
+            itemReminderArrayList.clear();
+            Cursor cursor = dbManager.getAllReminder(userID);
+            if (cursor != null && cursor.moveToFirst()) {
+                do {
+                    @SuppressLint("Range") String title = cursor.getString(cursor.getColumnIndex("title"));
+                    @SuppressLint("Range") String date = cursor.getString(cursor.getColumnIndex("date"));
+                    @SuppressLint("Range") String time = cursor.getString(cursor.getColumnIndex("time"));
+                    ItemReminder reminder = new ItemReminder(title, date, time);
+                    itemReminderArrayList.add(reminder);
+                } while (cursor.moveToNext());
+            }
+            cursor.close();
+            lv.setAdapter(reminderAdapter);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void addNewReminder(ItemReminder reminder) {
+        itemReminderArrayList.add(reminder);
+        lv.setAdapter(reminderAdapter);
     }
 }
